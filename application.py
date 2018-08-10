@@ -33,7 +33,7 @@ def upload_file():
     return render_template('index.html')
   if request.method == 'POST':
     # アプロードされたファイルを保存する
-    f = request.files['file']
+    f = request.files['image']
     filepath = "./static/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".png"
     f.save(filepath)
     # モデルを使って判定する
