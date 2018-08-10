@@ -26,7 +26,7 @@ class CNN(chainer.Chain):
         h = self.fc2(h)
         return h
 
-app = Flask(__name__)
+application = Flask(__name__)
 @app.route('/', methods = ['GET', 'POST'])
 def upload_file():
   if request.method == 'GET':
