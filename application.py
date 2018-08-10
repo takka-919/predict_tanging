@@ -27,7 +27,7 @@ class CNN(chainer.Chain):
         return h
 
 application = Flask(__name__)
-@app.route('/', methods = ['GET', 'POST'])
+@application.route('/', methods = ['GET', 'POST'])
 def upload_file():
   if request.method == 'GET':
     return render_template('index.html')
@@ -53,4 +53,4 @@ def upload_file():
 
     return render_template('index.html', filepath = filepath , predict = predict )
 if __name__ == '__main__':
-  app.run(host="0.0.0.0", port=int("5000"),debug=True)
+  application.run(host="0.0.0.0", port=int("5000"),debug=True)
