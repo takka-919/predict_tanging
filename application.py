@@ -38,7 +38,8 @@ class CNN(chainer.Chain):
 
 def make_spectrogram(filename):
     fig,ax = plt.subplots()
-    sound = AudioSegment.from_file(filename, "wav")
+    sound_buf = AudioSegment.from_file(filename, "wav")
+    sound = sound[4333:5667]
     samples = np.array(sound.get_array_of_samples())
     sample = samples[::sound.channels]
     spec = np.fft.fft(sample)
