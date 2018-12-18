@@ -38,7 +38,7 @@ class CNN(chainer.Chain):
 
 def make_spectrogram(filename):
     fig,ax = plt.subplots()
-    sound = AudioSegment.from_file(filename, "m4a")
+    sound = AudioSegment.from_file(filename, "wav")
     samples = np.array(sound.get_array_of_samples())
     sample = samples[::sound.channels]
     spec = np.fft.fft(sample)
@@ -107,7 +107,7 @@ def upload_file():
   if request.method == 'POST':
     # アプロードされたファイルを保存する
     f = request.files['sound']
-    sound_filepath = "./static/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".m4a"
+    sound_filepath = "./static/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".wav"
     f.save(sound_filepath)
     img_filepath = make_spectrogram(sound_filepath)
     # モデルを使って判定する
