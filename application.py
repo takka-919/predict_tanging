@@ -10,6 +10,15 @@ from chainer import training
 from chainer.training import extensions
 from datetime import datetime
 from flask import Flask, jsonify
+from pydub import AudioSegment
+import glob
+import pandas as pd
+import matplotlib as mpl
+mpl.use('Agg') # -----(1)
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
 
 class CNN(chainer.Chain):
 
@@ -27,21 +36,84 @@ class CNN(chainer.Chain):
         h = self.fc2(h)
         return h
 
+def make_spectrogram(filename):
+    fig,ax = plt.subplots()
+    sound = AudioSegment.from_file(filename, "wav")
+    samples = np.array(sound.get_array_of_samples())
+    sample = samples[::sound.channels]
+    spec = np.fft.fft(sample)
+    freq = np.fft.fftfreq(sample.shape[0], 1.0/sound.frame_rate)
+    freq = freq[:int(freq.shape[0]/2)]
+    spec = spec[:int(spec.shape[0]/2)]
+    spec[0] = spec[0] / 2
+
+    #plt.xscale("log")
+    # plt.yscale("log")
+    #窓幅
+    w = 1000
+    #刻み
+    s = 500
+    #スペクトル格納用
+    ampList = []
+    #偏角格納用
+    argList = []
+
+    #刻みずつずらしながら窓幅分のデータをフーリエ変換する
+    for i in range(int((sample.shape[0]- w) / s)):
+        data = sample[i*s:i*s+w]
+        spec = np.fft.fft(data)
+        spec = spec[:int(spec.shape[0]/2)]
+        spec[0] = spec[0] / 2
+        ampList.append(np.abs(spec))
+        argList.append(np.angle(spec))
+
+    #周波数は共通なので１回だけ計算（縦軸表示に使う）
+    freq = np.fft.fftfreq(data.shape[0], 1.0/sound.frame_rate)
+    freq = freq[:int(freq.shape[0]/2)]
+
+    #時間も共通なので１回だけ計算（横軸表示に使う）
+    time = np.arange(0, i+1, 1) * s / sound.frame_rate
+
+    #numpyの配列にしておく
+    ampList = np.array(ampList)
+    argList = np.array(argList)
+
+    df_amp = pd.DataFrame(data=ampList, index=time, columns=freq)
+
+    #seabornのheatmapを使う
+    plt.figure(figsize=(20, 6))
+    sns.heatmap(data=np.log(df_amp.iloc[:, :100].T),
+                xticklabels=100,
+                yticklabels=10,
+                cmap=plt.cm.gist_rainbow_r,
+                cbar=False
+               )
+    plt.tick_params(length=0)
+    plt.tick_params(labelbottom='off')
+    plt.tick_params(labelleft='off')
+    path, ext = os.path.splitext( os.path.basename(filename) )
+    if not os.path.isdir('./output'):
+        os.makedirs('./output')
+    plt.savefig('./output/' + path +'.jpg')
+    return './output/' + path +'.jpg'
+
 application = Flask(__name__)
 application.config['JSON_AS_ASCII'] = False
 @application.route('/', methods = ['GET', 'POST'])
+
 def upload_file():
   if request.method == 'GET':
     return render_template('index.html')
   if request.method == 'POST':
     # アプロードされたファイルを保存する
-    f = request.files['image']
-    filepath = "./static/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".png"
-    f.save(filepath)
+    f = request.files['sound']
+    sound_filepath = "./static/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".wav"
+    f.save(sound_filepath)
+    img_filepath = make_spectrogram(sound_filepath)
     # モデルを使って判定する
     model = L.Classifier(CNN())
     serializers.load_npz('model_tanging.npz', model)
-    image = Image.open(filepath)
+    image = Image.open(img_filepath)
     img_resize = image.resize((256, 256))
     img_resize = np.array(img_resize, 'f')
     img_resize = img_resize.transpose((2, 0, 1))
