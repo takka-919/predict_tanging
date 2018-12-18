@@ -1,4 +1,7 @@
 <html>
+  <head>
+    <script src="{{url_for('static', filename='index.js')}}"></script>
+  </head>
    <body>
       {% if predict %}
         <IMG SRC="{{filepath}} " BORDER="1"> predict:{{predict}} <BR>
@@ -10,5 +13,7 @@
          <input type = "file" name = "image" />
          <input type = "submit"/>
       </form>
+      <button id="recorder" onClick="record()">Record</button>
+      <audio id="player" controls></audio>
    </body>
 </html>
