@@ -22,18 +22,23 @@ import os
 
 class CNN(chainer.Chain):
 
-    def __init__(self, n_mid=512, n_out=5):
+    def __init__(self, n_out=5):
         super().__init__()
         with self.init_scope():
-            self.conv1 = L.Convolution2D(None, out_channels=3, ksize=3, stride=1, pad=1)
-            self.fc1 = L.Linear(None, n_mid)
-            self.fc2 = L.Linear(None, n_out)
+            self.conv1 = L.Convolution2D(None, out_channels=16, ksize=3, stride=1, pad=1)
+            self.conv2 = L.Convolution2D(None, out_channels=32, ksize=3, stride=1, pad=1)
+            self.fc1 = L.Linear(None, 128)
+            self.fc2 = L.Linear(None, 64)
+            self.fc3 = L.Linear(None, n_out)
 
     def __call__(self, x):
         h = F.relu(self.conv1(x))
-        h = F.max_pooling_2d(h, 3, 3)
+        h = F.max_pooling_2d(h, 2, 2)
+        h = F.relu(self.conv2(x))
+        h = F.max_pooling_2d(h, 2, 2)
         h = self.fc1(h)
         h = self.fc2(h)
+        h = self.fc3(h)
         return h
 
 def make_spectrogram(filename):
