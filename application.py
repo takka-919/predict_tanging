@@ -134,7 +134,7 @@ def upload_file():
     img_resize = np.array(img_resize, 'f')
     img_resize = img_resize.transpose((2, 0, 1))
     y = model.predictor(np.array([img_resize], 'f'))
-    y = F.softmax(y)
+    y = F.softmax(y/10)
     y = y.array
     print(y)
     if np.argmax(y, axis=1)[0] == 0:
@@ -148,7 +148,11 @@ def upload_file():
     elif np.argmax(y, axis=1)[0] == 4:
         predict = "la"
     result = {
-        "result" : predict
+        "tu" : str(y[0][0]),
+        "du" : str(y[0][1]),
+        "ta" : str(y[0][2]),
+        "da" : str(y[0][3]),
+        "la" : str(y[0][4])
     }
     return jsonify(result)
 if __name__ == '__main__':
