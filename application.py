@@ -134,7 +134,7 @@ def upload_file():
     img_resize = np.array(img_resize, 'f')
     img_resize = img_resize.transpose((2, 0, 1))
     y = model.predictor(np.array([img_resize], 'f'))
-    y = F.softmax(y/10)
+    y = F.softmax(y/2)
     y = y.array
     print(y)
     if np.argmax(y, axis=1)[0] == 0:
