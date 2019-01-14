@@ -50,7 +50,7 @@ class CNN(chainer.Chain):
         h = self.fc2(h)
         h = self.fc3(h)
         return h
-
+        
 def make_spectrogram(filename):
     fig,ax = plt.subplots()
     sound_buf = AudioSegment.from_file(filename, "wav")
@@ -115,8 +115,19 @@ def make_spectrogram(filename):
 
 application = Flask(__name__)
 application.config['JSON_AS_ASCII'] = False
-@application.route('/', methods = ['GET', 'POST'])
 
+@application.route('/datasets', methods=['POST'])
+def make_datasets():
+    # アプロードされたファイルを保存する
+    f = request.files['sound']
+    sound_filepath = "./static/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".wav"
+    f.save(sound_filepath)
+    result = {
+        "success" : "true"
+    }
+    return jsonify(result)
+
+@application.route('/', methods = ['GET', 'POST'])
 def upload_file():
   if request.method == 'GET':
     return render_template('index.html')
